@@ -1,10 +1,10 @@
-# © Joseph Cameron - All Rights Reserved
+# © Joseph Cameron - MIT License
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 project(jfchash_consumer LANGUAGES CXX)
 
-find_package(jfchash REQUIRED)
+find_package(jfc-hash 1 REQUIRED)
 
 add_executable(consumer main.cpp)
 

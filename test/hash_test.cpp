@@ -1,4 +1,4 @@
-// © Joseph Cameron - All Rights Reserved
+// © Joseph Cameron - MIT License
 
 #include <jfc/catch.hpp>
 
@@ -11,6 +11,7 @@
 #include <random>
 #include <set>
 #include <string>
+#include <string_view>
 
 using namespace jfc::hash;
 
@@ -18,6 +19,15 @@ static_assert(std::uniform_random_bit_generator<splitmix64>);
 static_assert(mix64(0) == 0xe220a8397b1dcdafull);
 static_assert(fnv1a64{}.add("foobar").value() == 0x85944171f73967e8ull);
 static_assert(values(1, 2, 3) == 0x6c650e5fbf57ac44ull);
+
+static_assert([] {
+    splitmix64 random(1234567);
+
+    random();
+    random();
+
+    return random();
+}() == 9817491932198370423ull);
 
 TEST_CASE("splitmix64 gives the published sequence", "[splitmix64]") {
     splitmix64 random(1234567);
@@ -107,4 +117,29 @@ TEST_CASE("splitmix64 drives a standard distribution", "[splitmix64]") {
 
         REQUIRE((rolled >= 1 && rolled <= 6));
     }
+}
+
+TEST_CASE("splitmix64 defaults to a seed of nought, and copy-list-initialises", "[splitmix64]") {
+    splitmix64 defaulted = {};
+    splitmix64 seeded(0);
+
+    CHECK(defaulted() == seeded());
+    CHECK(defaulted.state() == seeded.state());
+}
+
+TEST_CASE("fixed-width integers give the same bits everywhere", "[values][fnv1a64]") {
+    CHECK(values(std::int32_t{-1}) == 0x59627b931ee7de0full);
+    CHECK(values(std::int64_t{-1}) == 0xa64a4e47b26b306full);
+    CHECK(values(std::uint64_t{5}) == values(std::uint32_t{5}));
+
+    CHECK(fnv1a64{}.add(std::uint64_t{5}).value() == 0x0de21504f16dc720ull);
+    CHECK(fnv1a64{}.add(std::uint32_t{5}).value() == 0x2d401a55eec16520ull);
+}
+
+TEST_CASE("a char hashes as its byte, whichever way the platform signs it", "[values][fnv1a64]") {
+    CHECK(values(static_cast<char>(-1)) == values(std::uint8_t{0xff}));
+    CHECK(values(static_cast<char>(0xff)) == values(std::uint8_t{0xff}));
+
+    CHECK(fnv1a64{}.add(static_cast<char>(-1)).value() == fnv1a64{}.add(std::uint8_t{0xff}).value());
+    CHECK(fnv1a64{}.add(std::string_view("\xff")).value() == fnv1a64{}.add(std::uint8_t{0xff}).value());
 }

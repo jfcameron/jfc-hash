@@ -1,4 +1,4 @@
-// © Joseph Cameron - All Rights Reserved
+// © Joseph Cameron - MIT License
 
 #ifndef JFC_HASH_H
 #define JFC_HASH_H
@@ -13,7 +13,10 @@
 
 /// \file
 /// \brief stable, non-cryptographic hashing: the same input gives the same bits on every platform, compiler and
-/// version. 
+/// version.
+///
+/// An integer is hashed at its own width, so the fixed-width types, `char` and `int` give the same bits everywhere,
+/// while `long`, `std::size_t`, `std::ptrdiff_t` and `wchar_t`, whose widths differ between platforms, do not.
 namespace jfc::hash {
     //! integers, without bool
     template <typename value_type>
@@ -97,12 +100,17 @@ namespace jfc::hash {
         std::uint64_t m_Value = 14695981039346656037ull;
     };
 
-    //! SplitMix64 as a generator: each output is mix64 of a counter stepped by GOLDEN. Usable with <random>
+    /// \brief SplitMix64 as a generator: each output is mix64 of a counter stepped by GOLDEN
+    ///
+    /// A uniform random bit generator, but the standard distributions are each library's own, so one fed from this
+    /// gives different numbers on libstdc++, libc++ and MSVC. unit_double and unit_float give the same everywhere.
     class splitmix64 final {
     public:
         using result_type = std::uint64_t;
 
-        constexpr explicit splitmix64(const std::uint64_t aSeed = 0) noexcept
+        constexpr splitmix64() noexcept = default;
+
+        constexpr explicit splitmix64(const std::uint64_t aSeed) noexcept
         : m_State(aSeed)
         {}
 
@@ -124,7 +132,7 @@ namespace jfc::hash {
         [[nodiscard]] constexpr std::uint64_t state() const noexcept { return m_State; }
 
     private:
-        std::uint64_t m_State;
+        std::uint64_t m_State = 0;
     };
 }
 
