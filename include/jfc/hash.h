@@ -26,12 +26,12 @@ namespace jfc::hash {
     inline constexpr std::uint64_t GOLDEN = 0x9e3779b97f4a7c15ull;
 
     /// \brief a bijection: SplitMix64's output for state x (Steele, Lea, Flood 2014; Vigna's constants)
-    [[nodiscard]] constexpr std::uint64_t mix64(std::uint64_t x) noexcept {
-        x += GOLDEN;
-        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ull;
-        x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
+    [[nodiscard]] constexpr std::uint64_t mix64(std::uint64_t aValue) noexcept {
+        aValue += GOLDEN;
+        aValue = (aValue ^ (aValue >> 30)) * 0xbf58476d1ce4e5b9ull;
+        aValue = (aValue ^ (aValue >> 27)) * 0x94d049bb133111ebull;
 
-        return x ^ (x >> 31);
+        return aValue ^ (aValue >> 31);
     }
 
     //! boost's hash_combine before 1.81, at 64 bits. Order matters
